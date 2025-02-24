@@ -22,7 +22,7 @@ Luna is crafted using the finest arcane technologies:
 ### 🛠️ Setup & Installation  
 Summon Luna into your system with these simple steps:  
 ```bash  
-git clone https://github.com/yourusername/Luna.git  
+git clone https://github.com/Rizve-Hub/Luna.git  
 cd Luna  
 pip install -r requirements.txt  
 python luna.py  
