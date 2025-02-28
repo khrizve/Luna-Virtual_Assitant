@@ -22,10 +22,10 @@ Luna is crafted using the finest arcane technologies:
 ### 🛠️ Setup & Installation  
 Summon Luna into your system with these simple steps:  
 ```bash  
-git clone https://github.com/Rizve-Hub/Luna.git  
-cd Luna  
+git clone https://github.com/Kh-Rizve/Luna-Virtual_Assitant.git  
+cd Luna-Virtual_Assitant  
 pip install -r requirements.txt  
-python luna.py  
+python luna_assistant.py  
 ```
 > **Note**: Ensure you have the **latest version of Python** and the required dependencies installed.  
 
