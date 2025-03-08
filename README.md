@@ -43,7 +43,7 @@ Luna is more than an AI—she is an evolving entity. Her intelligence grows as s
 Want to enhance Luna’s magical abilities? Contributions are always welcome! Fork the repository, make your improvements, and submit a pull request. Let's shape Luna into the ultimate AI assistant together.  
 
 ### 🧙‍🏽‍🤺 The Code Mage  
-Luna is a creation of **[Rizve - The Code Mage](https://github.com/Kh-Rizve)**. Crafted with logic, magic, and a deep passion for AI. 🌟  
+Luna is a creation of **[Rizve - The Code Mage](https://github.com/khrizve)**. Crafted with logic, magic, and a deep passion for AI. 🌟  
 
 ---  
 
