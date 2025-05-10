@@ -3,7 +3,6 @@ import speech_recognition as sr
 import datetime
 import requests
 import pyjokes
-import wikipedia
 import os
 import subprocess
 import platform
@@ -26,11 +25,11 @@ mixer.init()
 
 window = tk.Tk()
 window.title("Luna - Virtual Assistant")
-window.geometry("700x700")
+window.geometry("400x600")
 window.configure(bg='black')
 
-image = Image.open("images\\luna.jpeg") #Use full path
-image = image.resize((500, 500), Image.Resampling.LANCZOS)
+image = Image.open("assets\\luna.jpeg")
+image = image.resize((400, 400), Image.Resampling.LANCZOS)
 photo = ImageTk.PhotoImage(image)
 img_label = Label(window, image=photo, bg='black')
 img_label.pack(pady=10)
@@ -42,10 +41,18 @@ response_label.pack(pady=20)
 status_label = Label(window, text="Listening Status: Not Listening", font=("Arial", 12), fg='white', bg='black')
 status_label.pack(pady=10)
 
+engine = pyttsx3.init()
 voices = engine.getProperty('voices')
+
+# List of common female voice indicators across OSes
+female_keywords = ["zira", "samantha", "victoria", "karen", "fiona", "female", "f3", "f4"]
+
+# Try to find a female voice
 for voice in voices:
-    if "zira" in voice.name.lower():
+    voice_name = voice.name.lower()
+    if any(keyword in voice_name for keyword in female_keywords):
         engine.setProperty('voice', voice.id)
+        logging.info(f"Female voice set: {voice.name}")
         break
 else:
     logging.warning("Female voice not found, using default voice.")
@@ -57,7 +64,6 @@ def speak(text):
 def listen():
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
-        speak("I am listening...")
         update_status("Listening...")
         recognizer.adjust_for_ambient_noise(source)
         audio = recognizer.listen(source)
@@ -95,7 +101,7 @@ def play_online_video(video_name):
 
 def play_offline_video(video_name):
     try:
-        video_dir = "C:\\Users\\Rizve\\Videos" # Use your own directory here
+        video_dir = "C:\\Users\\Rizve\\Videos"
         for root, dirs, files in os.walk(video_dir):
             for file in files:
                 if video_name.lower() in file.lower() and file.endswith((".mp4", ".avi", ".mkv")):
@@ -192,49 +198,55 @@ def get_location():
         speak(error_message)
         print(error_message)
 
-def get_wikipedia_answer(query):
-    try:
-        summary = wikipedia.summary(query, sentences=2)
-        return summary
-    except wikipedia.exceptions.DisambiguationError as e:
-        return f"Which topic would you like more information about? Here are some options: {', '.join(e.options[:5])}"
-    except wikipedia.exceptions.HTTPTimeoutError:
-        return "I couldn't fetch the information due to a timeout error."
-    except wikipedia.exceptions.RedirectError:
-        return "There seems to be an issue with the requested topic."
-    except wikipedia.exceptions.PageError:
-        return "I couldn't find any information on that topic."
-    except Exception as e:
-        return str(e)
-
 def perform_web_browsing(command):
-    if "open" in command:
+    command = command.lower().strip()
+
+    # Handle 'open' command
+    if command.startswith("open"):
         website = command.replace("open", "").strip()
         if "youtube" in website:
-            speak(f"Opening {website}")
-            webbrowser.open(f"https://www.youtube.com")
+            speak("Opening YouTube")
+            webbrowser.open("https://www.youtube.com")
         elif "google" in website:
-            speak(f"Opening {website}")
-            webbrowser.open(f"https://www.google.com")
-        else:
+            speak("Opening Google")
+            webbrowser.open("https://www.google.com")
+        elif "." in website:
             speak(f"Opening {website}")
             webbrowser.open(f"https://{website}")
-    elif "search" in command:
-        query = command.replace("search for", "").strip()
-        speak(f"Searching for {query}")
+        else:
+            speak(f"Opening {website}")
+            webbrowser.open(f"https://www.{website}.com")
+
+    elif command.startswith(("search", "what is", "who is", "tell about")):
+        query = command
+        for phrase in ["search", "what is", "who is", "tell about", "for"]:
+            query = query.replace(phrase, "")
+        query = query.strip()
+        if not query:
+            speak("Please tell me what to search for.")
+            return
+
+        speak(f"Searching for {query}...")
+        url = f"https://api.duckduckgo.com/?q={query.replace(' ', '+')}&format=json&no_html=1&skip_disambig=1"
+
         try:
-            summary = wikipedia.summary(query, sentences=1)
-            speak(f"Here's what I found: {summary}")
-        except wikipedia.exceptions.DisambiguationError as e:
-            speak(f"Which {query} would you like to know about? Here are some options: {', '.join(e.options[:5])}")
-        except wikipedia.exceptions.HTTPTimeoutError:
-            speak("I couldn't fetch the information due to a timeout error.")
-        except wikipedia.exceptions.RedirectError:
-            speak("There seems to be an issue with the requested topic.")
-        except wikipedia.exceptions.PageError:
-            speak("I couldn't find any information on that topic.")
+            response = requests.get(url)
+            data = response.json()
+
+            if data.get("AbstractText"):
+                speak(data["AbstractText"])
+            elif data.get("RelatedTopics"):
+                first_topic = data["RelatedTopics"][0]
+                if isinstance(first_topic, dict) and "Text" in first_topic:
+                    speak(first_topic["Text"])
+                else:
+                    speak(f"I found something, but I can't read it out.")
+            else:
+                speak("Sorry, I couldn't find a clear answer, but I've opened the search in your browser.")
+                webbrowser.open(f"https://google.com/?q={query.replace(' ', '+')}")
         except Exception as e:
             speak(f"An error occurred: {str(e)}")
+
     else:
         speak("Sorry, I didn't understand the browsing command.")
 
@@ -284,7 +296,7 @@ def assistant_loop():
             or just sharing a laugh. 
             With my AI-powered capabilities, 
             I can help you stay organized, provide weather updates, 
-            Best of all, I’m always ready to assist—online or offline.''')
+            Best of all, I’m always ready to assist.''')
         elif "time" in command:
             speak(f"The current time is {get_time()}.")
         elif "date" in command:
@@ -302,28 +314,10 @@ def assistant_loop():
         elif "am i online" in command:
             tell_online_status()
         elif "play" in command:
-            play_video(command)    
-        elif "who is" in command:
-            person = command.replace("who is", "").strip()
-            if person:
-                speak(f"Here is some information about {person}: {get_wikipedia_answer(person)}")
-            else:
-                speak("Please specify the person you want to know about.")
-        elif "what is" in command:
-            concept = command.replace("what is", "").strip()
-            if concept:
-                speak(f"Here is some information about {concept}: {get_wikipedia_answer(concept)}")
-            else:
-                speak("Please specify what you want to know about.")    
-        elif "tell me about" in command:
-            topic = command.replace("tell me about", "").strip()
-            if topic:
-                speak(f"Here is some information about {topic}: {get_wikipedia_answer(topic)}")
-            else:
-                speak("Please specify the topic you want to know about.")
+            play_video(command)
         elif "shutdown" in command or "restart" in command or "sleep" in command:
             perform_system_action(command)   
-        elif "open" in command or "search" in command:
+        elif "open" in command or "search" in command or "who is" in command or "what is" in command or "tell about" in command:
             perform_web_browsing(command)            
         elif "exit" in command or "bye" in command or "back" in command or "goodbye" in command:
             speak("Goodbye!")
@@ -339,3 +333,4 @@ def start_assistant():
 if __name__ == "__main__":
     start_assistant()
     window.mainloop()
+    
