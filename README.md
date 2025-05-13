@@ -1,3 +1,5 @@
+![Luna](Luna-Virtual_Assistant/assets/miss_luna.jpeg)
+
 ## 🌙 Luna - The Enchanted AI Assistant ✨  
 
 > **"Summoned from the depths of arcane code, Luna is more than just an assistant—she's your AI companion, ready to aid you in your digital journey."** 🧙‍♂️🔮  
